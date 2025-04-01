@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProductRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\category;
 use App\Models\product;
 use Illuminate\Http\Request;
@@ -14,9 +16,11 @@ class ProductController extends Controller
     public function index()
     {
         //
-        $title = 'Listado de productos';
+        return "Hola mundo";
         $products =  product::all();
-        return view('products.index', compact('products', 'title'));
+        $products = ProductResource::collection($products);
+
+        return response()->json($products);
     }
 
     /**
@@ -48,18 +52,22 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        //
-        $validate = $request->validate([
-            'prodName' => 'required',
-            'price' => 'required|decimal:0,2',
-            'category_id' => 'required',
+
+        $product =product::create([
+            'prodName' => $request['prodName'],
+            'price' => $request['price'],
+            'category_id' => $request['category_id'],
         ]);
 
-        product::create($validate);
+        $product = new ProductResource($product);
 
-        return redirect()->route('products.index')->with('success', 'El producto se creo con exito');
+        return response()->json(
+            [
+                'message' => 'Producto creado correctamente',
+                'data' => $product
+            ], 201);
 
 
 
@@ -110,6 +118,24 @@ class ProductController extends Controller
     {
         //
         $product->delete();
-        return redirect()->route('products.index')->with('success', 'El producto se elimino con exito');
+        return response()->json([
+            'message' => 'Producto eliminado correctamente'
+        ], 200);
+        // return redirect()->route('products.index')->with('success', 'El producto se elimino con exito');
+    }
+
+
+    public function subtractPrice(Request $request, $id)
+    {
+        $product = product::find($id);
+        $product->price = $product->price - $request->subtract;
+        $product->save();
+
+        $product = new ProductResource($product);
+        return response()->json([
+            'message' => 'Precio actualizado',
+            'data' => $product
+        ],200);
+
     }
 }

@@ -30,7 +30,11 @@ class product extends Model
     public function category(){
         //, 'category_id', 'id'
         //return $this->belongsTo(Category::class , 'category_id', 'idCategory');
-        return $this->belongsTo(Category::class , );
+        return $this->belongsTo(Category::class);
     }
+
+    static $rulePrice = [
+        'price' => 'required|numeric|min:0'
+    ];
 
 }

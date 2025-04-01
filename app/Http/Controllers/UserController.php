@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -13,11 +15,11 @@ class UserController extends Controller
     public function index()
     {
         //
-        $title = "Bienvenido usuario";
+
         $users =  User::all();
+        $users = UserResource::collection($users);
 
-        return view('users.index', compact('users', 'title'));
-
+       return response()->json($users);
     }
 
     /**
@@ -32,18 +34,19 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
-
-
-        $validated = $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8',
+        $user = User::create([
+            'name' => $request['name'],
+            'email' => $request['email'],
+            'password' => bcrypt($request['password'])
         ]);
-
-        User::create($validated);
-        return redirect()->route('users.index')->with('success', 'Usuario creado correctamente');
+        return response()->json(
+            [
+                'message' => 'Usuario creado correctamente',
+                'data' => $user
+            ],201);
+        // return redirect()->route('users.index')->with('success', 'Usuario creado correctamente');
     }
 
     /**
